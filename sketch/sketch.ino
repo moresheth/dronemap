@@ -112,7 +112,7 @@ void sendData()
   // Exit out if we're not past the interval.
   if ( ( now - timestamp ) < OUTPUT__DATA_INTERVAL ) return;
   // Only do this if we're sending data.
-  if ( output_stream_on ) return;
+  if ( !output_stream_on ) return;
   // Take readings from each sensor.
   readSensors();
   // Now send that.
@@ -123,6 +123,7 @@ void readSensors()
 {
   for (int i = 0; i < pings; i++) {
     getPing(i);
+    delay(20);
   }
 }
 
@@ -133,7 +134,7 @@ void sendSensorData()
   String str = "{\"pings\":[";
   for (int i = 0; i < pings; i++) {
     if ( i != 0 ) str += ",";
-    str += dtostrf( distances[i], 4, 2, dtostrfbuffer);
+    str += distances[i];
   }
   str += "]}";
   Serial.println( str );
