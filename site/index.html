@@ -10,6 +10,18 @@
 <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
 <![endif]-->
 <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    var socket = io.connect('http://localhost');
+
+    socket.on('points', socketPoints);
+
+    function socketPoints(data) {
+        console.log(data);
+    }
+</script>
+
 <script src="three.min.js"></script>
 <script>
 
