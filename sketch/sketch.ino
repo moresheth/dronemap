@@ -7,11 +7,9 @@ boolean output_stream_on = false;
 unsigned long now;
 unsigned long timestamp;
 
-// I don't know enough about this language to do this the correct way.
-int pingPins[] = {2,3,4,5};
-long int durations[] = {0, 0, 0, 0};
-long int distances[] = {0, 0, 0, 0};
-int pings = 4;
+int pingPin = 4;
+long int duration = 0;
+long int distance = 0;
 
 void setup()
 {
@@ -20,10 +18,8 @@ void setup()
   // Init status LED
   pinMode( STATUS_LED_PIN, OUTPUT );
   digitalWrite( STATUS_LED_PIN, LOW );
-  // Init each Ping sensor.
-  for (int i = 0; i < pings; i++) {
-    pinMode( pingPins[i], OUTPUT );
-  }
+  // Init Ping sensor.
+  pinMode( pingPin, OUTPUT );
   // Give sensors enough time to collect data
   delay(20);
   // For update timer.
@@ -50,17 +46,17 @@ long microsecondsToCentimeters( long microseconds )
   return microseconds / 29 / 2;
 }
 
-long getPing(int index)
+long getPing()
 {
-  pinMode( pingPins[index], OUTPUT );
-  digitalWrite( pingPins[index], LOW );
+  pinMode( pingPin, OUTPUT );
+  digitalWrite( pingPin, LOW );
   delayMicroseconds(2);
-  digitalWrite( pingPins[index], HIGH );
+  digitalWrite( pingPin, HIGH );
   delayMicroseconds(5);
-  digitalWrite( pingPins[index], LOW );
-  pinMode( pingPins[index], INPUT );
-  durations[index] = pulseIn( pingPins[index], HIGH );
-  distances[index] = microsecondsToCentimeters( durations[index] );
+  digitalWrite( pingPin, LOW );
+  pinMode( pingPin, INPUT );
+  duration = pulseIn( pingPin, HIGH );
+  distance = microsecondsToCentimeters( duration );
 }
 
 void turn_output_stream_on()
@@ -113,30 +109,19 @@ void sendData()
   if ( ( now - timestamp ) < OUTPUT__DATA_INTERVAL ) return;
   // Only do this if we're sending data.
   if ( !output_stream_on ) return;
-  // Take readings from each sensor.
-  readSensors();
+  // Take readings from sensor.
+  getPing();
   // Now send that.
   sendSensorData();
-}
-
-void readSensors()
-{
-  for (int i = 0; i < pings; i++) {
-    getPing(i);
-    delay(20);
-  }
 }
 
 void sendSensorData()
 {
   // String-building JSON.
   static char dtostrfbuffer[15];
-  String str = "{\"pings\":[";
-  for (int i = 0; i < pings; i++) {
-    if ( i != 0 ) str += ",";
-    str += distances[i];
-  }
-  str += "]}";
+  String str = "{\"ping\":";
+  str += distance;
+  str += "}";
   Serial.println( str );
 }
 
