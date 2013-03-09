@@ -37,13 +37,23 @@ function init() {
 
 function fly() {
 	drone.takeoff();
+//	drone.back(0.15);
 	drone
 		.after(5000, function() {
-			this.front(0.2);
+			this.stop();
 			this.clockwise(0.5);
-			this.up(0.2);
 		})
-		.after(3000, function() {
+//		.after(5000, function() {
+//			this.stop();
+//			this.back(0.15);
+//			this.up(1);
+//		})
+//		.after(1000, function() {
+//			this.stop();
+//			this.back(0.15);
+//			this.clockwise(0.5);
+//		})
+		.after(5000, function() {
 			this.stop();
 			this.land();
 		});

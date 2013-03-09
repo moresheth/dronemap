@@ -24,7 +24,6 @@ body {
 <script src="//drone:8080/socket.io/socket.io.js"></script>
 <script src="three.min.js"></script>
 <script src="Detector.js"></script>
-<script src="testdata.js"></script>
 <script>
 
 var socket = io.connect('http://drone:8080/');
@@ -33,6 +32,7 @@ socket.on('points', socketPoints);
 
 function socketPoints(data) {
     console.log(data);
+    plotPointArray(data);
 }
 
 // Adapted from this demo:
@@ -47,7 +47,7 @@ var container,
     geometry,
     material,
     parameters,
-    mult = 1.75,
+    mult = 1.5,
     vertpos = 0,
     testpos = 0,
     i,
@@ -60,11 +60,9 @@ var container,
 
 init();
 animate();
-/*
-// For testing system without running machines.
-loadTestData();
+
 // Every 100 milliseconds, load the next data. This should be same rate as real life.
-setInterval( loadTestData, 100 );
+//setInterval( loadTestData, 20 );
 function loadTestData() {
     // If we're done, just return.
     if ( testdata.length <= testpos ) return;
@@ -73,7 +71,7 @@ function loadTestData() {
     // Set up for next.
     testpos++;
 }
-*/
+
 function plotPointArray(arr) {
     for (var i=0,l=arr.length;i<l;i++) {
         var dot = arr[i];
@@ -87,7 +85,6 @@ function plotPointArray(arr) {
         vertpos++;
     }
     // Update the view.
-    //geometry.verticesNeedUpdate = true;
     geometry.verticesNeedUpdate = true;
 }
 
