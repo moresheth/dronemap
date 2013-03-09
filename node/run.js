@@ -21,25 +21,9 @@ var serialport      = require('serialport'),
 
 	io,
 
-	points = [
-		[80,80,80],
-		[80,80,-80],
-		[80,-80,-80],
-		[-80,-80,-80],
-		[-80,-80,80],
-		[-80,80,80]
-	];
+	points = [];
 
 init();
-
-//setTimeout( dostuff, 10000);
-
-function dostuff() {
-	console.log('dostuff');
-	io.sockets.emit('points', points);
-}
-
-// TODO: Give drone predetermined path.
 
 // =========================================================
 
@@ -47,13 +31,31 @@ function init() {
 	socketInit();
 	fireflyInit();
 	droneInit();
+	// After everything has started, take a trip.
+	setTimeout( fly, 15000);
+}
+
+function fly() {
+	drone.takeoff();
+	drone
+		.after(5000, function() {
+			this.front(0.2);
+			this.clockwise(0.5);
+			this.up(0.2);
+		})
+		.after(3000, function() {
+			this.stop();
+			this.land();
+		});
 }
 
 // ========================== AR.Drone ==========================
 
 function droneInit() {
 	drone = arDrone.createClient();
+	drone.disableEmergency();
 	drone.config('general:navdata_demo', 'FALSE');
+	drone.config('general:navdata_options','NAVDATA_OPTION_FULL_MASK');
 	drone.on('navdata', droneData );
 }
 
@@ -73,7 +75,7 @@ function droneData(data) {
 	droneEnv.yaw = dat.clockwiseDegrees;
 	droneEnv.pitch = dat.frontBackDegrees;
 	droneEnv.roll = dat.leftRightDegrees;
-	droneEnv.alt = dat.altitudeMeters / 100;
+	droneEnv.alt = dat.altitudeMeters * 100;
 }
 
 // ========================== Socket.io ==========================
@@ -109,12 +111,29 @@ function fireflyError(e) {
 }
 
 function fireflyData(data) {
-	console.log('firefly: '+data);
-	var obj = json(data);
-	// TODO: translate this data into a point.
-	// var point = [90,90,90];
-	// TODO: send that point data.
-	// io.sockets.emit('points', [point]);
+	var obj = json(data),
+		// Just the new data, for sending to already connected clients.
+		thesePoints = [],
+		// Translate this data into a point.
+		// Adding on the ping offset for height argument. This should be a different setting.
+		point = plot( obj.ping, droneEnv.yaw, 10, droneEnv.x, droneEnv.y, droneEnv.alt ),
+		// Now plot the ground point.
+		ground = [ round( droneEnv.x, 1 ), round( droneEnv.y, 1 ), 0 ];
+	// If we already have that point, don't bother.
+	if ( !has( points, point ) ) {
+		points.push( point );
+		thesePoints.push( point );
+	}
+	if ( !has( points, ground ) ) {
+		points.push( ground );
+		thesePoints.push( ground );
+	}
+	// Don't send anything if we have no data.
+	if ( thesePoints.length > 0 ) {
+		console.log(thesePoints);
+		// Send that point data to all clients.
+		io.sockets.emit( 'points', thesePoints );
+	}
 }
 
 // ========================== Utility Functions ==========================
@@ -127,4 +146,34 @@ function json(data) {
 		console.log( 'error parsing: ' + data );
 	}
 	return obj;
+}
+
+function sind(d) {
+	return Math.sin( Math.PI*d / 180.0 );
+}
+
+function cosd(d) {
+	return Math.cos( Math.PI*d / 180.0 );
+}
+
+function tand(d) {
+	return Math.tan( Math.PI*d / 180.0 );
+}
+
+function plot( distance, angle, height, xo, yo, zo ) {
+	var x = round( ( cosd( angle ) * distance ) + xo, 1 ),
+		y = round( ( sind( angle ) * distance ) + yo, 1 ),
+		z = round( height + zo, 1 );
+	return [ x, y, z ];
+}
+
+function round( num, decimalPlaces ) {
+	return Math.round( num * decimalPlaces * 10 ) / ( decimalPlaces * 10 );
+}
+
+function has( arr, el ) {
+	for (var i=0,l=arr.length;i<l;i++) {
+		if ( arr[i][0] === el[0] && arr[i][1] === el[1] && arr[i][2] === el[2] ) return true;
+	}
+	return false;
 }
