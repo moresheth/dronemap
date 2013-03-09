@@ -47,37 +47,47 @@ var container,
     geometry,
     material,
     parameters,
+    vertpos = 0,
+    testpos = 0,
     i,
     h,
     color,
     mouseX = 0,
     mouseY = 0,
-    mult = 1.5,
     windowHalfX = window.innerWidth / 2,
     windowHalfY = window.innerHeight / 2;
 
 init();
 animate();
+
+// For testing system without running machines.
 loadTestData();
-
+// Every 100 milliseconds, load the next data. This should be same rate as real life.
+setInterval( loadTestData, 100 );
 function loadTestData() {
+    // If we're done, just return.
+    if ( testdata.length <= testpos ) return;
+    // Plot the data that would have been set.
+    plotPointArray( testdata[testpos] );
+    // Set up for next.
+    testpos++;
+}
 
-    for (var i=0,l=testdata.length;i<l;i++) {
-        for (var j=0,k=testdata[i].length;j<k;j++) {
-            var dot = testdata[i][j];
-
-            var vertex = new THREE.Vector3();
-            vertex.x = dot[0] * mult;
-            vertex.y = dot[1] * mult;
-            vertex.z = dot[2] * mult;
-
-            geometry.vertices.push( vertex );
-        }
+function plotPointArray(arr) {
+    for (var i=0,l=arr.length;i<l;i++) {
+        var dot = arr[i];
+        // Take the next vertex that hasn't been moved.
+        var vertex = geometry.vertices[ vertpos ];
+        // Move it to the correct place.
+        vertex.x = dot[0];
+        vertex.y = dot[1];
+        vertex.z = dot[2];
+        // Increment vertex position.
+        vertpos++;
     }
-
-
+    // Update the view.
     //geometry.verticesNeedUpdate = true;
-    geometry.__dirtyVertices = true;
+    geometry.verticesNeedUpdate = true;
 }
 
 function init() {
@@ -93,17 +103,13 @@ function init() {
 
     geometry = new THREE.Geometry();
 
-    for (var i=0,l=testdata.length;i<l;i++) {
-        for (var j=0,k=testdata[i].length;j<k;j++) {
-            var dot = testdata[i][j];
-
-            var vertex = new THREE.Vector3();
-            vertex.x = dot[0] * mult;
-            vertex.y = dot[1] * mult;
-            vertex.z = dot[2] * mult;
-
-            geometry.vertices.push( vertex );
-        }
+    // Make 10k points ahead of time, and hide them.
+    for (var i=0,l=10000;i<l;i++) {
+        var vertex = new THREE.Vector3();
+        vertex.x = 0;
+        vertex.y = 0;
+        vertex.z = 10000;
+        geometry.vertices.push( vertex );
     }
 
     material = new THREE.ParticleBasicMaterial( { size: 5 } );
