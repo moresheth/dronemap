@@ -21,15 +21,15 @@ body {
 </head>
 <body>
 <div id="container"></div>
-<!-- <script src="//drone:8080/socket.io/socket.io.js"></script> -->
+<script src="//drone:8080/socket.io/socket.io.js"></script>
 <script src="three.min.js"></script>
 <script src="Detector.js"></script>
 <script src="testdata.js"></script>
 <script>
 
-//var socket = io.connect('http://drone:8080/');
+var socket = io.connect('http://drone:8080/');
 
-//socket.on('points', socketPoints);
+socket.on('points', socketPoints);
 
 function socketPoints(data) {
     console.log(data);
@@ -47,6 +47,7 @@ var container,
     geometry,
     material,
     parameters,
+    mult = 1.75,
     vertpos = 0,
     testpos = 0,
     i,
@@ -59,7 +60,7 @@ var container,
 
 init();
 animate();
-
+/*
 // For testing system without running machines.
 loadTestData();
 // Every 100 milliseconds, load the next data. This should be same rate as real life.
@@ -72,16 +73,16 @@ function loadTestData() {
     // Set up for next.
     testpos++;
 }
-
+*/
 function plotPointArray(arr) {
     for (var i=0,l=arr.length;i<l;i++) {
         var dot = arr[i];
         // Take the next vertex that hasn't been moved.
         var vertex = geometry.vertices[ vertpos ];
         // Move it to the correct place.
-        vertex.x = dot[0];
-        vertex.y = dot[1];
-        vertex.z = dot[2];
+        vertex.x = dot[0] * mult;
+        vertex.y = dot[1] * mult;
+        vertex.z = dot[2] * mult;
         // Increment vertex position.
         vertpos++;
     }

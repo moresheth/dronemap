@@ -32,7 +32,7 @@ function init() {
 	fireflyInit();
 	droneInit();
 	// After everything has started, take a trip.
-	setTimeout( fly, 15000);
+	setTimeout( fly, 10000);
 }
 
 function fly() {
